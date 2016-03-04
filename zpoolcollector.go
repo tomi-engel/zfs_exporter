@@ -5,7 +5,19 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func describePool(pool *zfs.Zpool) map[string]*prometheus.Desc {
+// A Zpool holds descriptions about metrics about a zpool
+type Zpool struct {
+	Allocated     *prometheus.Desc
+	Size          *prometheus.Desc
+	Free          *prometheus.Desc
+	Fragmentation *prometheus.Desc
+	ReadOnly      *prometheus.Desc
+	Freeing       *prometheus.Desc
+	Leaked        *prometheus.Desc
+	DedupRatio    *prometheus.Desc
+}
+
+func describePool(pool *zfs.Zpool) Zpool {
 	const (
 		subsystem = "zpool"
 	)
@@ -15,43 +27,43 @@ func describePool(pool *zfs.Zpool) map[string]*prometheus.Desc {
 		"hostname",
 	}
 
-	return map[string]*prometheus.Desc{
-		"allocated": prometheus.NewDesc(
+	return Zpool{
+		Allocated: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "allocated"),
 			"Bytes of storage physically allocated",
 			labels,
 			nil),
-		"size": prometheus.NewDesc(
+		Size: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "size"),
 			"Total Size of the storage pool",
 			labels,
 			nil),
-		"free": prometheus.NewDesc(
+		Free: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "free"),
 			"Bytes of storage free in this pool",
 			labels,
 			nil),
-		"fragmentation": prometheus.NewDesc(
+		Fragmentation: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "fragmentation"),
 			"Amount of fragmentation in a pool", // TODO figure out what the metric actually means for this
 			labels,
 			nil),
-		"readonly": prometheus.NewDesc(
+		ReadOnly: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "readonly"),
 			"True if pool is in readonly mode",
 			labels,
 			nil),
-		"freeing": prometheus.NewDesc(
+		Freeing: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "freeing"),
 			"Amount of storage currently being freed", // TODO figure out what the metric actually means for this
 			labels,
 			nil),
-		"leaked": prometheus.NewDesc(
+		Leaked: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "leaked"),
 			"", // TODO figure out what the metric actually means for this
 			labels,
 			nil),
-		"dedup_ratio": prometheus.NewDesc(
+		DedupRatio: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "dedup_ratio"),
 			"", // TODO figure out what the metric actually means for this
 			labels,
@@ -68,37 +80,37 @@ func createMetrics(pool *zfs.Zpool, hostname string) []prometheus.Metric {
 	}
 	return []prometheus.Metric{
 		prometheus.MustNewConstMetric(
-			desc["allocated"],
+			desc.Allocated,
 			prometheus.GaugeValue,
 			float64(pool.Allocated),
 			labels...),
 		prometheus.MustNewConstMetric(
-			desc["size"],
+			desc.Size,
 			prometheus.GaugeValue,
 			float64(pool.Size),
 			labels...),
 		prometheus.MustNewConstMetric(
-			desc["free"],
+			desc.Size,
 			prometheus.GaugeValue,
 			float64(pool.Free),
 			labels...),
 		prometheus.MustNewConstMetric(
-			desc["fragmentation"],
+			desc.Fragmentation,
 			prometheus.GaugeValue,
 			float64(pool.Fragmentation),
 			labels...),
 		prometheus.MustNewConstMetric(
-			desc["freeing"],
+			desc.Freeing,
 			prometheus.GaugeValue,
 			float64(pool.Freeing),
 			labels...),
 		prometheus.MustNewConstMetric(
-			desc["leaked"],
+			desc.Leaked,
 			prometheus.GaugeValue,
 			float64(pool.Leaked),
 			labels...),
 		prometheus.MustNewConstMetric(
-			desc["dedup_ratio"],
+			desc.DedupRatio,
 			prometheus.GaugeValue,
 			float64(pool.DedupRatio),
 			labels...),
