@@ -16,14 +16,14 @@ type Filesystem struct {
 	Quota         *prometheus.Desc
 }
 
-func describeDataSet(dataset *zfs.Dataset) Filesystem {
+func describeFileSystem(dataset *zfs.Dataset) Filesystem {
 	const (
 		subsystem = "filesystem"
 	)
 
 	labels := []string{
 		"name",
-		"orogin",
+		"origin",
 		"pool_name",
 		"hostname",
 		"mount_point",
@@ -51,7 +51,7 @@ func describeDataSet(dataset *zfs.Dataset) Filesystem {
 			"The amount of storage written by this dataset",
 			labels,
 			nil),
-		VolumSize: prometheus.NewDesc(
+		VolumeSize: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace,
 				subsystem,
 				"volume_size"),
@@ -79,6 +79,56 @@ func describeDataSet(dataset *zfs.Dataset) Filesystem {
 			"", // figure out what this actually means
 			labels,
 			nil),
+	}
+
+}
+
+func createFilesystemMetrics(fs *zfs.Dataset, pool *zfs.Zpool, hostname string) []prometheus.Metric {
+	desc := describeFileSystem(fs)
+	labels := []string{
+		fs.Name,
+		fs.Origin,
+		pool.Name,
+		hostname,
+		fs.Mountpoint,
+	}
+
+	return []prometheus.Metric{
+		prometheus.MustNewConstMetric(
+			desc.Used,
+			prometheus.GaugeValue,
+			float64(fs.Used),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.Available,
+			prometheus.GaugeValue,
+			float64(fs.Avail),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.Written,
+			prometheus.GaugeValue,
+			float64(fs.Written),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.VolumeSize,
+			prometheus.GaugeValue,
+			float64(fs.Volsize),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.UsedByDataset,
+			prometheus.GaugeValue,
+			float64(fs.Usedbydataset),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.LogicalUsed,
+			prometheus.GaugeValue,
+			float64(fs.Logicalused),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.Quota,
+			prometheus.GaugeValue,
+			float64(fs.Quota),
+			labels...),
 	}
 
 }
