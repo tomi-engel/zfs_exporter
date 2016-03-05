@@ -120,7 +120,7 @@ func collectDatasetMetrics(ds *zfs.Dataset, pool *zfs.Zpool) []prometheus.Metric
 			labels...),
 		prometheus.MustNewConstMetric(
 			desc.Written,
-			prometheus.GaugeValue,
+			prometheus.CounterValue,
 			float64(ds.Written),
 			labels...),
 		prometheus.MustNewConstMetric(
