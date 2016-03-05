@@ -2,7 +2,6 @@ package zfsexporter
 
 import (
 	"log"
-	"os"
 	"sync"
 
 	"github.com/eliothedeman/go-zfs"
@@ -44,12 +43,6 @@ func (e *Exporter) Collect(c chan<- prometheus.Metric) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Printf("Unable to get hostname from os: %s\n", err)
-		return
-	}
-
 	for _, name := range e.poolNames {
 
 		// grab the pool
@@ -62,14 +55,14 @@ func (e *Exporter) Collect(c chan<- prometheus.Metric) {
 			if err == nil {
 
 				// metrics for the pool itself
-				metrics := collectZpoolMetrics(pool, ds, hostname)
+				metrics := collectZpoolMetrics(pool, ds)
 				for _, m := range metrics {
 					c <- m
 				}
 
 				// metrics for each dataset in the pool
 				for _, d := range ds {
-					metrics = collectDatasetMetrics(d, pool, hostname)
+					metrics = collectDatasetMetrics(d, pool)
 					for _, m := range metrics {
 						c <- m
 					}

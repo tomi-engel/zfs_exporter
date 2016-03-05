@@ -36,15 +36,12 @@ func (d *Dataset) Describe(c chan<- *prometheus.Desc) {
 // NewDataset fills in descriptions for a Dataset
 func NewDataset() *Dataset {
 	const (
-		subsystem = "filesystem"
+		subsystem = "dataset"
 	)
 
 	labels := []string{
 		"name",
-		"origin",
 		"pool_name",
-		"hostname",
-		"mount_point",
 		"type",
 	}
 
@@ -74,7 +71,7 @@ func NewDataset() *Dataset {
 			prometheus.BuildFQName(namespace,
 				subsystem,
 				"volume_size"),
-			"", // TODO figure out what this actually is
+			"The size of the volume this datset resides on", // TODO figure out what this actually is
 			labels,
 			nil),
 		UsedByDataset: prometheus.NewDesc(
@@ -95,21 +92,18 @@ func NewDataset() *Dataset {
 			prometheus.BuildFQName(namespace,
 				subsystem,
 				"quota"),
-			"", // figure out what this actually means
+			"The amount of storage the pool is allowed to use.", // figure out what this actually means
 			labels,
 			nil),
 	}
 
 }
 
-func collectDatasetMetrics(ds *zfs.Dataset, pool *zfs.Zpool, hostname string) []prometheus.Metric {
+func collectDatasetMetrics(ds *zfs.Dataset, pool *zfs.Zpool) []prometheus.Metric {
 	desc := NewDataset()
 	labels := []string{
 		ds.Name,
-		ds.Origin,
 		pool.Name,
-		hostname,
-		ds.Mountpoint,
 		ds.Type,
 	}
 

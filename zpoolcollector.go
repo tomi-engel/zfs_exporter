@@ -48,7 +48,6 @@ func NewZpool() *Zpool {
 
 	labels := []string{
 		"pool_name",
-		"hostname",
 	}
 
 	return &Zpool{
@@ -84,12 +83,12 @@ func NewZpool() *Zpool {
 			nil),
 		Leaked: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "leaked"),
-			"", // TODO figure out what the metric actually means for this
+			"Amount of leaked storage", // TODO figure out what the metric actually means for this
 			labels,
 			nil),
 		DedupRatio: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "dedup_ratio"),
-			"", // TODO figure out what the metric actually means for this
+			"Ratio of storage that is used for duplication", // TODO figure out what the metric actually means for this
 			labels,
 			nil),
 		Snapshots: prometheus.NewDesc(
@@ -110,12 +109,11 @@ func NewZpool() *Zpool {
 	}
 }
 
-func collectZpoolMetrics(pool *zfs.Zpool, ds []*zfs.Dataset, hostname string) []prometheus.Metric {
+func collectZpoolMetrics(pool *zfs.Zpool, ds []*zfs.Dataset) []prometheus.Metric {
 
 	desc := NewZpool()
 	labels := []string{
 		pool.Name,
-		hostname,
 	}
 	return []prometheus.Metric{
 		prometheus.MustNewConstMetric(
