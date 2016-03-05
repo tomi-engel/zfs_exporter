@@ -15,9 +15,33 @@ type Zpool struct {
 	Freeing       *prometheus.Desc
 	Leaked        *prometheus.Desc
 	DedupRatio    *prometheus.Desc
+	Snapshots     *prometheus.Desc
+	Filesystems   *prometheus.Desc
+	Volumes       *prometheus.Desc
 }
 
-func describePool(pool *zfs.Zpool) Zpool {
+// Describe sends the descriptions of the zpool on the given channel
+func (z *Zpool) Describe(c chan<- *prometheus.Desc) {
+	m := []*prometheus.Desc{
+		z.Allocated,
+		z.Size,
+		z.Free,
+		z.Fragmentation,
+		z.ReadOnly,
+		z.Freeing,
+		z.Leaked,
+		z.DedupRatio,
+		z.Snapshots,
+		z.Filesystems,
+		z.Volumes,
+	}
+	for _, d := range m {
+		c <- d
+	}
+}
+
+// NewZpool fills a zpool with it's descriptions
+func NewZpool() *Zpool {
 	const (
 		subsystem = "zpool"
 	)
@@ -27,7 +51,7 @@ func describePool(pool *zfs.Zpool) Zpool {
 		"hostname",
 	}
 
-	return Zpool{
+	return &Zpool{
 		Allocated: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "allocated"),
 			"Bytes of storage physically allocated",
@@ -68,12 +92,27 @@ func describePool(pool *zfs.Zpool) Zpool {
 			"", // TODO figure out what the metric actually means for this
 			labels,
 			nil),
+		Snapshots: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, subsystem, "snapshots"),
+			"The number of snapshots in this pool",
+			labels,
+			nil),
+		Filesystems: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, subsystem, "filesystems"),
+			"The number of filesystems in this pool",
+			labels,
+			nil),
+		Volumes: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, subsystem, "volumes"),
+			"The number of volumes in this pool",
+			labels,
+			nil),
 	}
 }
 
-func createMetrics(pool *zfs.Zpool, hostname string) []prometheus.Metric {
+func collectZpoolMetrics(pool *zfs.Zpool, ds []*zfs.Dataset, hostname string) []prometheus.Metric {
 
-	desc := describePool(pool)
+	desc := NewZpool()
 	labels := []string{
 		pool.Name,
 		hostname,
@@ -114,5 +153,30 @@ func createMetrics(pool *zfs.Zpool, hostname string) []prometheus.Metric {
 			prometheus.GaugeValue,
 			float64(pool.DedupRatio),
 			labels...),
+		prometheus.MustNewConstMetric(
+			desc.Snapshots,
+			prometheus.GaugeValue,
+			float64(countDatasetsByType(ds, zfs.DatasetSnapshot)),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.Filesystems,
+			prometheus.GaugeValue,
+			float64(countDatasetsByType(ds, zfs.DatasetFilesystem)),
+			labels...),
+		prometheus.MustNewConstMetric(
+			desc.Volumes,
+			prometheus.GaugeValue,
+			float64(countDatasetsByType(ds, zfs.DatasetVolume)),
+			labels...),
 	}
+}
+
+func countDatasetsByType(ds []*zfs.Dataset, dsType string) int {
+	count := 0
+	for _, d := range ds {
+		if d.Type == dsType {
+			count++
+		}
+	}
+	return count
 }

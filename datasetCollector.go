@@ -5,8 +5,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// A Filesystem holds descriptions about a ZFS dataset for prometheus
-type Filesystem struct {
+// A Dataset holds descriptions about a ZFS dataset for prometheus
+type Dataset struct {
 	Used          *prometheus.Desc
 	Available     *prometheus.Desc
 	Written       *prometheus.Desc
@@ -16,7 +16,25 @@ type Filesystem struct {
 	Quota         *prometheus.Desc
 }
 
-func describeFileSystem(dataset *zfs.Dataset) Filesystem {
+// Describe sends all of the descriptions of metrics collectd about datasets on the given channel
+func (d *Dataset) Describe(c chan<- *prometheus.Desc) {
+	m := []*prometheus.Desc{
+		d.Used,
+		d.Available,
+		d.Written,
+		d.VolumeSize,
+		d.UsedByDataset,
+		d.LogicalUsed,
+		d.Quota,
+	}
+
+	for _, x := range m {
+		c <- x
+	}
+}
+
+// NewDataset fills in descriptions for a Dataset
+func NewDataset() *Dataset {
 	const (
 		subsystem = "filesystem"
 	)
@@ -27,9 +45,10 @@ func describeFileSystem(dataset *zfs.Dataset) Filesystem {
 		"pool_name",
 		"hostname",
 		"mount_point",
+		"type",
 	}
 
-	return Filesystem{
+	return &Dataset{
 		Used: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace,
 				subsystem,
@@ -83,51 +102,52 @@ func describeFileSystem(dataset *zfs.Dataset) Filesystem {
 
 }
 
-func createFilesystemMetrics(fs *zfs.Dataset, pool *zfs.Zpool, hostname string) []prometheus.Metric {
-	desc := describeFileSystem(fs)
+func collectDatasetMetrics(ds *zfs.Dataset, pool *zfs.Zpool, hostname string) []prometheus.Metric {
+	desc := NewDataset()
 	labels := []string{
-		fs.Name,
-		fs.Origin,
+		ds.Name,
+		ds.Origin,
 		pool.Name,
 		hostname,
-		fs.Mountpoint,
+		ds.Mountpoint,
+		ds.Type,
 	}
 
 	return []prometheus.Metric{
 		prometheus.MustNewConstMetric(
 			desc.Used,
 			prometheus.GaugeValue,
-			float64(fs.Used),
+			float64(ds.Used),
 			labels...),
 		prometheus.MustNewConstMetric(
 			desc.Available,
 			prometheus.GaugeValue,
-			float64(fs.Avail),
+			float64(ds.Avail),
 			labels...),
 		prometheus.MustNewConstMetric(
 			desc.Written,
 			prometheus.GaugeValue,
-			float64(fs.Written),
+			float64(ds.Written),
 			labels...),
 		prometheus.MustNewConstMetric(
 			desc.VolumeSize,
 			prometheus.GaugeValue,
-			float64(fs.Volsize),
+			float64(ds.Volsize),
 			labels...),
 		prometheus.MustNewConstMetric(
 			desc.UsedByDataset,
 			prometheus.GaugeValue,
-			float64(fs.Usedbydataset),
+			float64(ds.Usedbydataset),
 			labels...),
 		prometheus.MustNewConstMetric(
 			desc.LogicalUsed,
 			prometheus.GaugeValue,
-			float64(fs.Logicalused),
+			float64(ds.Logicalused),
 			labels...),
 		prometheus.MustNewConstMetric(
 			desc.Quota,
 			prometheus.GaugeValue,
-			float64(fs.Quota),
+			float64(ds.Quota),
 			labels...),
 	}
 
