@@ -12,44 +12,29 @@ import (
 )
 
 var (
-	telemetryAddr = flag.String("telemetry.addr", ":9134", "host:port for zfs exporter")
+	telemetryAddr = flag.String("telemetry.addr", ":9134", "host:port for ZFS exporter")
 	telemetryPath = flag.String("telemetry.path", "/metrics", "URL path for surfacing collected metrics")
-	poolNames     = flag.String("pool.names", "", "Comma seperated list of pool names (Defaults to '' which fetches all pool names)")
+
+	poolNames = flag.String("zfs.pools", "", "[optional] comma-separated list of pool names; if none specified, all pools will be scraped")
 )
-
-func detectAllPoolNames() []string {
-	pools, err := zfs.ListZpools()
-	if err != nil {
-		log.Printf("Unable to list zpools for this host: %s", err)
-		return nil
-	}
-	names := make([]string, len(pools))
-	for i, p := range pools {
-		names[i] = p.Name
-	}
-
-	return names
-}
 
 func main() {
 	flag.Parse()
 
 	var names []string
 	if *poolNames == "" {
-
-		names = detectAllPoolNames()
-
-		// none found, exit
-		if names == nil {
-			return
+		var err error
+		names, err = detectAllPoolNames()
+		if err != nil {
+			log.Fatalf("failed to retrieve all ZFS pool names: %v", err)
 		}
-
-		log.Printf("No pool names provided, using all pools\n")
 	} else {
 		names = strings.Split(*poolNames, ",")
 	}
 
-	log.Printf("Monitoring pools: %v", names)
+	if len(names) == 0 {
+		log.Fatal("no ZFS pools detected, exiting")
+	}
 
 	// Register our exporter
 	prometheus.MustRegister(zfsexporter.New(names))
@@ -60,11 +45,24 @@ func main() {
 		http.Redirect(w, r, *telemetryPath, http.StatusMovedPermanently)
 	})
 
-	log.Printf("Starting ZFS exporter on %q\n", *telemetryAddr)
+	log.Printf("starting ZFS exporter on %q for pool(s): %s\n",
+		*telemetryAddr, strings.Join(names, ", "))
 
-	// run
 	if err := http.ListenAndServe(*telemetryAddr, nil); err != nil {
-		log.Fatalf("Unexpected failure of ZFS exporter: %s\n", err)
+		log.Fatalf("unexpected failure of ZFS exporter HTTP server: %v", err)
+	}
+}
+
+func detectAllPoolNames() ([]string, error) {
+	pools, err := zfs.ListZpools()
+	if err != nil {
+		return nil, err
 	}
 
+	names := make([]string, 0, len(pools))
+	for _, p := range pools {
+		names = append(names, p.Name)
+	}
+
+	return names, nil
 }
