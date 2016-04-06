@@ -3,7 +3,7 @@ package zfsexporter
 import (
 	"log"
 
-	"github.com/eliothedeman/go-zfs"
+	"github.com/mistifyio/go-zfs"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
