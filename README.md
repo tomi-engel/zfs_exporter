@@ -26,7 +26,7 @@ The initial goals are:
 The key steps so far have been
 
 - fork all relevant Go projects
-- include not fixes
+- include our hot fixes
 
 In order to "activate" our fix you should run the tool via:
 
