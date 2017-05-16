@@ -9,11 +9,13 @@ echo "    GOOS: `go env GOOS`"
 echo "  GOARCH: `go env GOARCH`"
 
 GOPATH=`go env GOPATH`
-#GOOS=solaris
+GOOS=`go env GOOS`
+# check cross compile for: linux? darin?
+#GOOS=linux
 #GOARCH=amd64
 #export GOOS GOARCH
 
-TARGET_BIN_FOLDER=$GOPATH/bin/solaris
+TARGET_BIN_FOLDER=$GOPATH/bin/${GOOS}
 
 if [ ! -x ${TARGET_BIN_FOLDER} ] ; then mkdir -p ${TARGET_BIN_FOLDER} ; fi
 
