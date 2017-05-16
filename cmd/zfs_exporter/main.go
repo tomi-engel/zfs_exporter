@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	buildVersion = "v2017.05.16.005"
+	buildVersion = "v0.2.0 (2017.05.16.013)"
 
 	telemetryAddr = flag.String("telemetry.addr", ":9134", "host:port for ZFS exporter")
 	telemetryPath = flag.String("telemetry.path", "/metrics", "URL path for surfacing collected metrics")
