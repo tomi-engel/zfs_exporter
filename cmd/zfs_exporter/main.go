@@ -7,11 +7,13 @@ import (
 	"strings"
 
 	"github.com/eliothedeman/go-zfs"
-	"github.com/eliothedeman/zfs_exporter"
+	"github.com/tomi-engel/zfs_exporter"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
+	buildVersion = "v2017.05.16"
+	
 	telemetryAddr = flag.String("telemetry.addr", ":9134", "host:port for ZFS exporter")
 	telemetryPath = flag.String("telemetry.path", "/metrics", "URL path for surfacing collected metrics")
 
@@ -45,8 +47,8 @@ func main() {
 		http.Redirect(w, r, *telemetryPath, http.StatusMovedPermanently)
 	})
 
-	log.Printf("starting ZFS exporter on %q for pool(s): %s\n",
-		*telemetryAddr, strings.Join(names, ", "))
+	log.Printf("starting ZFS exporter (%s) on %q for pool(s): %s\n",
+		buildVersion, *telemetryAddr, strings.Join(names, ", "))
 
 	if err := http.ListenAndServe(*telemetryAddr, nil); err != nil {
 		log.Fatalf("unexpected failure of ZFS exporter HTTP server: %v", err)
