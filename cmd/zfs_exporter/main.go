@@ -4,31 +4,41 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
+	// "os/signal"
+
 	"strings"
 
-	"github.com/eliothedeman/go-zfs"
-	"github.com/tomi-engel/zfs_exporter"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/tomi-engel/go-zfs"
+	"github.com/tomi-engel/zfs_exporter"
 )
 
 var (
-	buildVersion = "v2017.05.16.003"
-	
+	buildVersion = "v2017.05.16.005"
+
 	telemetryAddr = flag.String("telemetry.addr", ":9134", "host:port for ZFS exporter")
 	telemetryPath = flag.String("telemetry.path", "/metrics", "URL path for surfacing collected metrics")
 
 	poolNames = flag.String("zfs.pools", "", "[optional] comma-separated list of pool names; if none specified, all pools will be scraped")
+
+	// featureZpoolMetricsDisabled = flag.Bool("feature.zpoolMetricsDisabled", false, "set to true if system has the 'zpool get -p' bug")
 )
 
 func main() {
+	os.Exit(Main())
+}
+
+func Main() int {
 	flag.Parse()
 
 	var names []string
 	if *poolNames == "" {
 		var err error
-		names, err = detectAllPoolNames()
+		names, err = zfs.ListZpoolNames()
 		if err != nil {
 			log.Fatalf("failed to retrieve all ZFS pool names: %v", err)
+			return 1
 		}
 	} else {
 		names = strings.Split(*poolNames, ",")
@@ -36,6 +46,7 @@ func main() {
 
 	if len(names) == 0 {
 		log.Fatal("no ZFS pools detected, exiting")
+		return 1
 	}
 
 	// Register our exporter
@@ -52,7 +63,10 @@ func main() {
 
 	if err := http.ListenAndServe(*telemetryAddr, nil); err != nil {
 		log.Fatalf("unexpected failure of ZFS exporter HTTP server: %v", err)
+		return 1
 	}
+
+	return 0
 }
 
 func detectAllPoolNames() ([]string, error) {
