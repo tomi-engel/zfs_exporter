@@ -1,6 +1,8 @@
 package zfsexporter
 
 import (
+	"flag"
+	"log"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -8,6 +10,10 @@ import (
 
 const (
 	namespace = "zfs"
+)
+
+var (
+	featureZpoolMetricsDisabled = flag.Bool("feature.zpoolMetricsDisabled", false, "set to true if system has the 'zpool get -p' bug")
 )
 
 // An Exporter is a Prometheus exporter for the ZFS filesystem.
@@ -22,11 +28,24 @@ var _ prometheus.Collector = &Exporter{}
 // New creates and returns a new Exporter which will collect metrics
 // about ZFS zpools and datasets running on this machine.
 func New(pools []string) *Exporter {
-	return &Exporter{
-		collectors: []prometheus.Collector{
-			NewZpoolCollector(pools),
-			NewDatasetCollector(pools),
-		},
+
+	if *featureZpoolMetricsDisabled == true {
+		log.Printf("Skipping NewZpoolCollector .. bug workaround \n")
+
+		return &Exporter{
+			collectors: []prometheus.Collector{
+				NewDatasetCollector(pools),
+			},
+		}
+
+	} else {
+
+		return &Exporter{
+			collectors: []prometheus.Collector{
+				NewZpoolCollector(pools),
+				NewDatasetCollector(pools),
+			},
+		}
 	}
 }
 
