@@ -3,8 +3,8 @@ package zfsexporter
 import (
 	"log"
 
-	"github.com/mistifyio/go-zfs"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/tomi-engel/go-zfs"
 )
 
 // A DatasetCollector is a Prometheus collector for ZFS dataset metrics.
@@ -74,7 +74,16 @@ func NewDatasetCollector(pools []string) *DatasetCollector {
 // datasets.
 func (c *DatasetCollector) collect(ch chan<- prometheus.Metric) (*prometheus.Desc, error) {
 	for _, p := range c.pools {
-		zpool, err := zfs.GetZpool(p)
+
+		var zpool *zfs.Zpool
+		var err error
+		zpool, err = nil, nil
+
+		if *featureZpoolMetricsDisabled == true {
+			zpool, err = zfs.GetZpoolWithoutUsingGetPFeature(p)
+		} else {
+			zpool, err = zfs.GetZpool(p)
+		}
 		if err != nil {
 			return c.UsedBytes, err
 		}
@@ -85,12 +94,12 @@ func (c *DatasetCollector) collect(ch chan<- prometheus.Metric) (*prometheus.Des
 		}
 
 		for _, d := range ds {
-			
+
 			// We have way too many snapshots which are changing way too quickly
 			// this is "bad" for the Prometheus data storage subsystem.
 			// Besides that .. snapshots are not changing, so tracing them has little value.
 			// So lets exclude the snapshots..
-			
+
 			if d.Type != "snapshot" {
 				c.collectDatasetMetrics(ch, zpool, d)
 			}
