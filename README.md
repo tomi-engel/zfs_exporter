@@ -50,7 +50,7 @@ The TCP port 9134 is listed in the official [Prometheus port allocation](https:/
 
 Known Problems:
 
-- Still does not for on 12.04 Ubuntu ZFS, because "/sbin/zfs zfs list -rHp ... => invalid option 'p'"
+- Still does not work on 12.04 Ubuntu ZFS, because "/sbin/zfs zfs list -rHp ... => invalid option 'p'"
 
 
 ### v0.1.0
