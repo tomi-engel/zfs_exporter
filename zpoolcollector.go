@@ -3,8 +3,8 @@ package zfsexporter
 import (
 	"log"
 
-	"github.com/mistifyio/go-zfs"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/tomi-engel/go-zfs"
 )
 
 // A ZpoolCollector is a Prometheus collector for ZFS zpool metrics.
