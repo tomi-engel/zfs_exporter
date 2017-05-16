@@ -45,6 +45,7 @@ The TCP port 9134 is listed in the official [Prometheus port allocation](https:/
 
 - Released on 2017.05.16
 - Added the -feature.zpoolMetricsDisabled=true option.
+- Added a filter to remove "snapshot" datasets from the metrics.
 - Code now depends on a patched [go-zfs](https://github.com/tomi-engel/go-zfs) package 
 
 ### v0.1.0
