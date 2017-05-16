@@ -16,9 +16,11 @@ GOPATH=`go env GOPATH`
 TARGET_BIN_FOLDER=$GOPATH/bin/solaris
 
 if [ ! -x ${TARGET_BIN_FOLDER} ] ; then mkdir -p ${TARGET_BIN_FOLDER} ; fi
+
+# TODO: There are most likely regular "go ways" to do the following .. but it does the trick for now ..
+#
     
-#go get golang.org/x/sys/unix
-#go build -ldflags '-linkmode internal' -o $GOPATH/bin/solaris/smartos_exporter github.com/tomi-engel/smartos_exporter
+#go get .. all the dependencies
 
 BUILD_PRODUCT_NAME=zfs_exporter
 BUILD_PRODUCT_PATH=./cmd/${BUILD_PRODUCT_NAME}/${BUILD_PRODUCT_NAME}
@@ -28,9 +30,6 @@ go build -v
 
 cd ${INITIAL_BASE_PATH}
 
-
-# TODO: There is most likely a regular "go way" to do the following ..
-#
 
 if [ -r ${BUILD_PRODUCT_PATH} ] ; then
     echo "Installing executable to: ${TARGET_BIN_FOLDER}/${BUILD_PRODUCT_NAME}"
