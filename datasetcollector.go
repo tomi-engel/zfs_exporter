@@ -85,7 +85,15 @@ func (c *DatasetCollector) collect(ch chan<- prometheus.Metric) (*prometheus.Des
 		}
 
 		for _, d := range ds {
-			c.collectDatasetMetrics(ch, zpool, d)
+			
+			// We have way too many snapshots which are changing way too quickly
+			// this is "bad" for the Prometheus data storage subsystem.
+			// Besides that .. snapshots are not changing, so tracing them has little value.
+			// So lets exclude the snapshots..
+			
+			if d.Type != "snapshot" {
+				c.collectDatasetMetrics(ch, zpool, d)
+			}
 		}
 	}
 
