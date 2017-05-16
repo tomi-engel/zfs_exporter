@@ -48,6 +48,11 @@ The TCP port 9134 is listed in the official [Prometheus port allocation](https:/
 - Added a filter to remove "snapshot" datasets from the metrics.
 - Code now depends on a patched [go-zfs](https://github.com/tomi-engel/go-zfs) package 
 
+Known Problems:
+
+- Still does not for on 12.04 Ubuntu ZFS, because "/sbin/zfs zfs list -rHp ... => invalid option 'p'"
+
+
 ### v0.1.0
 
 - Our initial fork from the original [zfs_exporter project](https://github.com/eliothedeman/zfs_exporter)
