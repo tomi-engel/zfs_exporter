@@ -30,7 +30,13 @@ The key steps so far have been
 
 In order to "activate" our fix you should run the tool via:
 
-     ./zfs_exporter -feature.zpoolMetricsDisabled=true &
+    ./zfs_exporter -feature.zpoolMetricsDisabled=true &
+     
+By default the exporter can be queried or tested with a request like this:
+
+    curl http://localhost:9134/metrics
+   
+The TCP port 9134 is listed in the official [Prometheus port allocation](https://github.com/prometheus/prometheus/wiki/Default-port-allocations) pages.
      
      
 ## Change Log
@@ -38,9 +44,11 @@ In order to "activate" our fix you should run the tool via:
 ### v0.2.0
 
 - Released on 2017.05.16
-- Added the feature.zpoolMetricsDisabled option.
+- Added the -feature.zpoolMetricsDisabled=true option.
 - Code now depends on a patched [go-zfs](https://github.com/tomi-engel/go-zfs) package 
 
 ### v0.1.0
 
 - Our initial fork from the original [zfs_exporter project](https://github.com/eliothedeman/zfs_exporter)
+
+
