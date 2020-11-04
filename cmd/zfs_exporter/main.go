@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/tomi-engel/go-zfs"
 	"github.com/tomi-engel/zfs_exporter"
 )
@@ -53,7 +54,7 @@ func Main() int {
 	prometheus.MustRegister(zfsexporter.New(names))
 
 	// register http handlers
-	http.Handle(*telemetryPath, prometheus.Handler())
+	http.Handle(*telemetryPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, *telemetryPath, http.StatusMovedPermanently)
 	})
